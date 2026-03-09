@@ -3,6 +3,7 @@
 import { ChangeEvent, useRef, useState } from "react";
 
 import { demoCases } from "@/lib/demoCases";
+import { getMockDemo } from "@/lib/mockData";
 import { AnalysisResult, StoryResult } from "@/lib/types";
 
 function looksLikeUrl(value: string): boolean {
@@ -29,29 +30,43 @@ export default function Home() {
   const [storyLoading, setStoryLoading] = useState(false);
   const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [demoMode, setDemoMode] = useState(true);
+  const [selectedDemoId, setSelectedDemoId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canAnalyze = Boolean(selectedFile) || inputText.trim().length > 2;
 
+  const resetOutputs = () => {
+    setAnalysis(null);
+    setStory(null);
+    setError("");
+  };
+
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
     setSelectedFile(file);
     setInputText("");
-    setAnalysis(null);
-    setStory(null);
-    setError("");
+    setSelectedDemoId(null);
+    resetOutputs();
   };
 
   const onAnalyze = async () => {
     if (!canAnalyze) return;
 
     setAnalyzing(true);
-    setAnalysis(null);
-    setStory(null);
-    setError("");
+    resetOutputs();
 
     try {
+      if (demoMode && selectedDemoId) {
+        const mockDemo = getMockDemo(selectedDemoId);
+        if (mockDemo) {
+          setAnalysis(mockDemo.analysis);
+          setStory(null);
+          return;
+        }
+      }
+
       let endpoint = "/api/analyze-text";
       let body: BodyInit;
       let headers: HeadersInit = { "Content-Type": "application/json" };
@@ -95,6 +110,14 @@ export default function Home() {
     setError("");
 
     try {
+      if (demoMode && selectedDemoId) {
+        const mockDemo = getMockDemo(selectedDemoId);
+        if (mockDemo) {
+          setStory(mockDemo.story);
+          return;
+        }
+      }
+
       const response = await fetch("/api/generate-story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,12 +141,11 @@ export default function Home() {
     }
   };
 
-  const onDemoClick = (value: string) => {
+  const onDemoClick = (id: string, value: string) => {
     setInputText(value);
     setSelectedFile(null);
-    setAnalysis(null);
-    setStory(null);
-    setError("");
+    setSelectedDemoId(id);
+    resetOutputs();
   };
 
   const onMicrophone = () => {
@@ -147,6 +169,7 @@ export default function Home() {
       const transcript = event.results?.[0]?.[0]?.transcript || "";
       setInputText(transcript);
       setSelectedFile(null);
+      setSelectedDemoId(null);
       setError("");
     };
 
@@ -182,9 +205,30 @@ export default function Home() {
             <p>Paste text, upload a screenshot, scan a suspicious link, or capture a voice-cloning transcript.</p>
           </div>
 
+          <div className="demo-mode-bar">
+            <label className="mode-toggle">
+              <input
+                type="checkbox"
+                checked={demoMode}
+                onChange={(event) => setDemoMode(event.target.checked)}
+              />
+              <span>Use free instant demo mode</span>
+            </label>
+            <p>
+              {demoMode
+                ? "Built-in sample outputs are used for the demo buttons, so judges can click through without spending Gemini credits."
+                : "Real Gemini calls run when you analyze content or generate a story."}
+            </p>
+          </div>
+
           <div className="demo-strip">
             {demoCases.map((demo) => (
-              <button key={demo.id} type="button" className="demo-chip" onClick={() => onDemoClick(demo.value)}>
+              <button
+                key={demo.id}
+                type="button"
+                className={`demo-chip ${selectedDemoId === demo.id ? "demo-chip-active" : ""}`}
+                onClick={() => onDemoClick(demo.id, demo.value)}
+              >
                 <span>{demo.label}</span>
                 <small>{demo.category}</small>
               </button>
@@ -198,6 +242,7 @@ export default function Home() {
             value={inputText}
             onChange={(event) => {
               setInputText(event.target.value);
+              setSelectedDemoId(null);
               if (event.target.value) {
                 setSelectedFile(null);
               }
@@ -220,7 +265,7 @@ export default function Home() {
           </div>
 
           <button type="button" className="primary-button" disabled={!canAnalyze || analyzing} onClick={onAnalyze}>
-            {analyzing ? "Analyzing risk..." : "Analyze"}
+            {analyzing ? "Analyzing risk..." : demoMode && selectedDemoId ? "Analyze with demo data" : "Analyze"}
           </button>
 
           {error && <p className="error-banner">{error}</p>}
@@ -277,7 +322,7 @@ export default function Home() {
           <p className="confidence-line">Confidence note: {analysis.confidence_note}</p>
 
           <button type="button" className="primary-button story-button" onClick={onGenerateStory} disabled={storyLoading}>
-            {storyLoading ? "Generating educational story..." : "Generate Story"}
+            {storyLoading ? "Generating educational story..." : demoMode && selectedDemoId ? "Generate demo story" : "Generate Story"}
           </button>
         </section>
       )}
@@ -321,5 +366,3 @@ export default function Home() {
     </main>
   );
 }
-
-

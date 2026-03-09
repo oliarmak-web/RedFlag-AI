@@ -137,6 +137,30 @@ button:hover:not(:disabled) {
   color: var(--muted);
 }
 
+.demo-mode-bar {
+  margin: 18px 0 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(29, 122, 88, 0.08);
+  border: 1px solid rgba(29, 122, 88, 0.12);
+}
+
+.demo-mode-bar p {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
+.mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.mode-toggle input {
+  accent-color: var(--green);
+}
+
 .demo-strip {
   display: flex;
   gap: 10px;
@@ -152,6 +176,12 @@ button:hover:not(:disabled) {
   background: linear-gradient(180deg, #fffcf7, #f4fbff);
   text-align: left;
   cursor: pointer;
+}
+
+.demo-chip-active {
+  border-color: rgba(29, 122, 88, 0.35);
+  background: linear-gradient(180deg, rgba(233, 255, 245, 0.96), rgba(245, 251, 255, 0.96));
+  box-shadow: inset 0 0 0 1px rgba(29, 122, 88, 0.14);
 }
 
 .demo-chip span,
