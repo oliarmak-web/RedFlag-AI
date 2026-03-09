@@ -10,6 +10,35 @@ const demoModeDefault = process.env.NEXT_PUBLIC_DEMO_MODE_DEFAULT !== "false";
 const demoModeLocked = process.env.NEXT_PUBLIC_DEMO_MODE_LOCK === "true";
 const gravityOrder: Gravity[] = ["Critical", "Elevated", "Watch"];
 
+const startupFeatures = [
+  {
+    title: "Shield Mode",
+    body: "Stops risky actions before the tap with short warnings like Do not scan or Verify first.",
+  },
+  {
+    title: "Trusted Circle",
+    body: "One-tap verification flow for family, friends, and emergency contacts when a message feels urgent.",
+  },
+  {
+    title: "Memory",
+    body: "Learns repeated attack patterns for a user and raises faster alerts when the same scam shape comes back.",
+  },
+  {
+    title: "Community Signal",
+    body: "Optional shared pattern matching across users so new scam templates can be flagged earlier.",
+  },
+  {
+    title: "High-Risk Stop",
+    body: "A hard interruption screen for the highest-risk moments: Do not send. Do not scan. Verify first.",
+  },
+];
+
+const wearableFlow = [
+  "Glasses catch the moment: suspicious QR, caller, or message cue.",
+  "Wearable shows a tiny alert: High risk. Verify caller.",
+  "Phone opens the full RedFlag explanation, guidance, and context.",
+];
+
 function looksLikeUrl(value: string): boolean {
   try {
     const parsed = new URL(value.trim());
@@ -364,6 +393,34 @@ export default function Home() {
               ))}
             </ul>
           </section>
+
+          <section className="card product-card">
+            <p className="eyebrow">Startup Layer</p>
+            <div className="feature-grid">
+              {startupFeatures.map((feature) => (
+                <article key={feature.title} className="feature-tile">
+                  <h3>{feature.title}</h3>
+                  <p>{feature.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="card wearable-card">
+            <p className="eyebrow">Wearable Concept</p>
+            <div className="wearable-strip">
+              <div className="wearable-node">Glasses</div>
+              <div className="wearable-arrow">{" > "}</div>
+              <div className="wearable-node">Alert</div>
+              <div className="wearable-arrow">{" > "}</div>
+              <div className="wearable-node">Phone</div>
+            </div>
+            <ul>
+              {wearableFlow.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
         </section>
       </section>
 
@@ -442,3 +499,4 @@ export default function Home() {
     </main>
   );
 }
+
