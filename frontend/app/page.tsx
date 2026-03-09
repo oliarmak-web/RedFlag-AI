@@ -6,6 +6,9 @@ import { demoCases } from "@/lib/demoCases";
 import { getMockDemo } from "@/lib/mockData";
 import { AnalysisResult, StoryResult } from "@/lib/types";
 
+const demoModeDefault = process.env.NEXT_PUBLIC_DEMO_MODE_DEFAULT !== "false";
+const demoModeLocked = process.env.NEXT_PUBLIC_DEMO_MODE_LOCK === "true";
+
 function looksLikeUrl(value: string): boolean {
   try {
     const parsed = new URL(value.trim());
@@ -30,7 +33,7 @@ export default function Home() {
   const [storyLoading, setStoryLoading] = useState(false);
   const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
-  const [demoMode, setDemoMode] = useState(true);
+  const [demoMode, setDemoMode] = useState(demoModeDefault);
   const [selectedDemoId, setSelectedDemoId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +68,11 @@ export default function Home() {
           setStory(null);
           return;
         }
+      }
+
+      if (demoModeLocked) {
+        setError("This public Cloud Run demo is locked to the built-in sample scenarios so it stays free to run.");
+        return;
       }
 
       let endpoint = "/api/analyze-text";
@@ -116,6 +124,11 @@ export default function Home() {
           setStory(mockDemo.story);
           return;
         }
+      }
+
+      if (demoModeLocked) {
+        setError("This public Cloud Run demo is locked to built-in scenarios, so live Gemini story calls are disabled.");
+        return;
       }
 
       const response = await fetch("/api/generate-story", {
@@ -193,8 +206,8 @@ export default function Home() {
         </div>
         <div className="hero-note">
           <span className="stat-kicker">One demo link</span>
-          <strong>Next.js + Gemini on Vercel</strong>
-          <p>No separate Python server, no backend host wiring, no cross-origin setup.</p>
+          <strong>Next.js on Cloud Run</strong>
+          <p>One hosted app, optional live Gemini mode, and a locked free demo path for judges.</p>
         </div>
       </section>
 
@@ -211,13 +224,16 @@ export default function Home() {
                 type="checkbox"
                 checked={demoMode}
                 onChange={(event) => setDemoMode(event.target.checked)}
+                disabled={demoModeLocked}
               />
-              <span>Use free instant demo mode</span>
+              <span>{demoModeLocked ? "Free demo mode is locked on" : "Use free instant demo mode"}</span>
             </label>
             <p>
-              {demoMode
-                ? "Built-in sample outputs are used for the demo buttons, so judges can click through without spending Gemini credits."
-                : "Real Gemini calls run when you analyze content or generate a story."}
+              {demoModeLocked
+                ? "This Cloud Run deployment is locked to built-in scenarios, so anyone opening the link can demo the app without consuming Gemini credits."
+                : demoMode
+                  ? "Built-in sample outputs are used for the demo buttons, so judges can click through without spending Gemini credits."
+                  : "Real Gemini calls run when you analyze content or generate a story."}
             </p>
           </div>
 
@@ -278,8 +294,8 @@ export default function Home() {
             <p>Frontend to FastAPI backend to Google Gemini SDK to structured JSON risk analysis to story generation to Cloud Run deployment.</p>
           </div>
           <div className="pipeline-block highlight-block">
-            <span>New pipeline</span>
-            <p>Next.js UI to Next.js API routes on Vercel to Google Gemini JS SDK to structured JSON analysis plus story plus visual scene to one clean public demo link.</p>
+            <span>Current pipeline</span>
+            <p>Next.js UI to Next.js API routes on Cloud Run to Google Gemini JS SDK to structured JSON analysis plus story plus visual scene, with an optional locked free demo mode.</p>
           </div>
           <div className="pipeline-block">
             <span>Storytelling angle</span>
