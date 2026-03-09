@@ -2,173 +2,81 @@
 
 **See it. Ask it. Understand the risk.**
 
-RedFlag AI is a full-stack Google Cloud hackathon prototype for scam and manipulation detection with a creative educational story layer.
+RedFlag AI is a hackathon demo for scam detection and safety storytelling. The app analyzes suspicious text, screenshots, links, and voice-style transcripts, then generates structured safety guidance and a short educational story that explains how the scam could unfold.
 
-## What it demonstrates
-- Real-world usefulness: phishing and scam risk triage
-- Multimodal reasoning: text, links, screenshots/images
-- Structured AI output: strict JSON responses
-- Optional live interaction: browser microphone transcript capture
-- Deployment readiness: Docker + Cloud Run commands
+## What changed
+The project is now set up for a smoother public demo flow:
+- One deployable Next.js app in `frontend/`
+- Gemini calls handled in Next.js API routes
+- Designed to deploy from GitHub to Vercel as a single service
+- No separate backend URL required for the demo link
 
-## Project structure
+## Current demo architecture
 ```text
-.
-+- frontend/
-¦  +- app/
-¦  +- .env.example
-¦  +- Dockerfile
-¦  +- package.json
-+- backend/
-¦  +- app/
-¦  ¦  +- routers/
-¦  ¦  +- services/
-¦  ¦  +- config.py
-¦  ¦  +- models.py
-¦  ¦  +- prompts.py
-¦  ¦  +- main.py
-¦  +- .env.example
-¦  +- Dockerfile
-¦  +- requirements.txt
-¦  +- main.py
-+- Dockerfile
-+- requirements.txt
-+- .env.example
-+- README.md
+Browser UI
+  -> Next.js app
+  -> /api/analyze-text
+  -> /api/analyze-link
+  -> /api/analyze-image
+  -> /api/generate-story
+  -> Gemini via Google GenAI JavaScript SDK
+  -> Structured JSON returned to the UI
 ```
 
-## Required API routes
-- `GET /health`
-- `POST /analyze-text`
-- `POST /analyze-image`
-- `POST /analyze-link`
-- `POST /generate-story`
+## Hackathon pipeline story
+### Original pipeline you can describe
+- Next.js frontend captured text, images, links, and optional voice transcript input.
+- A FastAPI backend handled the API routes.
+- Google Gemini was called through the Google SDK for multimodal scam analysis.
+- The backend returned structured JSON with risk level, summary, detected signals, guidance, and confidence note.
+- A second Gemini prompt generated the creative educational story layer.
+- The intended deploy target was Google Cloud Run with environment-based config.
 
-## Prompt templates
-Prompt templates are in:
-- `backend/app/prompts.py`
+### New pipeline you can describe now
+- The UI is still Next.js, but the backend logic now lives inside Next.js API routes.
+- Gemini is called directly on the server side using the Google GenAI JavaScript SDK.
+- The app returns structured JSON for analysis and for the story card.
+- Story mode now also produces a visual scene description and visual cues so you can explain what scam setups, such as fake QR-code posters, would look like during the demo.
+- The whole experience can deploy as one GitHub-connected Vercel app for a cleaner demo link.
 
-They enforce JSON response formats:
+## Story mode upgrade
+Story generation now includes:
+- `title`
+- `short_story`
+- `red_flags_spotted`
+- `lesson_learned`
+- `visual_scene_description`
+- `visual_cues`
 
-### Analysis JSON
-```json
-{
-  "risk_level": "Low | Medium | High",
-  "summary": "short plain-language summary",
-  "signals_detected": ["signal 1", "signal 2", "signal 3"],
-  "guidance": ["safe next step 1", "safe next step 2"],
-  "confidence_note": "brief note"
-}
-```
+That means QR scams, fake recruiter messages, and impersonation attempts can be shown not just as text, but as a guided explanation of what the user would actually see.
 
-### Story JSON
-```json
-{
-  "title": "story title",
-  "short_story": "short educational narrative showing how the scam or manipulation could unfold",
-  "red_flags_spotted": ["red flag 1", "red flag 2"],
-  "lesson_learned": "short takeaway"
-}
-```
-
-## Demo data included in UI
-- Phishing email
-- Suspicious QR code
-- Fake recruiter message
-- Fake social media profile
-- Family emergency voice-cloning transcript
-
-## Local setup
-
-### 1. Backend (FastAPI)
+## Local run
 ```bash
-cd backend
-python -m venv .venv
-# Windows PowerShell
-.\.venv\Scripts\Activate.ps1
-# macOS/Linux
-source .venv/bin/activate
-
-pip install -r requirements.txt
+cd frontend
+npm install
+npm run dev
 ```
 
-Create `backend/.env` from `backend/.env.example` and set:
+Create `frontend/.env.local` with:
 ```bash
 GEMINI_API_KEY=your_google_genai_api_key
 GEMINI_MODEL=gemini-2.0-flash
 ```
 
-Run backend:
-```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 2. Frontend (Next.js)
-```bash
-cd frontend
-npm install
-```
-
-Create `frontend/.env.local` from `frontend/.env.example`:
-```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-```
-
-Run frontend:
-```bash
-npm run dev
-```
-
 Open `http://localhost:3000`.
 
-## Google GenAI setup
-1. Create/enable API key for Gemini.
-2. Put key in backend `.env` as `GEMINI_API_KEY`.
-3. Optional: change `GEMINI_MODEL` (default `gemini-2.0-flash`).
+## Vercel deploy
+1. Push the repo to GitHub.
+2. Import the repo into Vercel.
+3. Set the Vercel Root Directory to `frontend`.
+4. Add environment variables:
+   - `GEMINI_API_KEY`
+   - `GEMINI_MODEL=gemini-2.0-flash`
+5. Deploy.
 
-## Docker local run
-
-### Backend container
-```bash
-docker build -t redflag-backend -f backend/Dockerfile backend
-docker run --rm -p 8000:8080 --env-file backend/.env redflag-backend
-```
-
-### Frontend container
-```bash
-docker build -t redflag-frontend -f frontend/Dockerfile frontend
-docker run --rm -p 3000:3000 -e NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 redflag-frontend
-```
-
-## Google Cloud Run deployment
-
-### Backend deploy
-```bash
-gcloud auth login
-gcloud config set project YOUR_PROJECT_ID
-
-gcloud run deploy redflag-ai-backend \
-  --source ./backend \
-  --region us-central1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --set-env-vars GEMINI_API_KEY=YOUR_API_KEY,GEMINI_MODEL=gemini-2.0-flash
-```
-
-Save backend URL, e.g. `https://redflag-ai-backend-xxxxx-uc.a.run.app`.
-
-### Frontend deploy
-```bash
-gcloud run deploy redflag-ai-frontend \
-  --source ./frontend \
-  --region us-central1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --set-env-vars NEXT_PUBLIC_API_BASE_URL=https://redflag-ai-backend-xxxxx-uc.a.run.app
-```
-
-## Quick demo steps
-1. Open RedFlag AI.
-2. Load one of the built-in sample cases.
-3. Click **Analyze** and discuss risk level + guidance.
-4. Click **Generate Story** to show educational narrative output.
+## Main routes
+- `GET /api/health`
+- `POST /api/analyze-text`
+- `POST /api/analyze-link`
+- `POST /api/analyze-image`
+- `POST /api/generate-story`

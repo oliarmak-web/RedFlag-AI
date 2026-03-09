@@ -1,70 +1,20 @@
 "use client";
 
-import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 
-type RiskLevel = "Low" | "Medium" | "High";
-
-type AnalysisResult = {
-  risk_level: RiskLevel;
-  summary: string;
-  signals_detected: string[];
-  guidance: string[];
-  confidence_note: string;
-};
-
-type StoryResult = {
-  title: string;
-  short_story: string;
-  red_flags_spotted: string[];
-  lesson_learned: string;
-};
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-
-const demoCases = [
-  {
-    id: "phishing-email",
-    label: "Phishing Email",
-    value:
-      "Subject: Urgent account verification needed\n\nYour payroll access will be suspended in 2 hours unless you re-verify your login at http://secure-payroll-check.info.",
-  },
-  {
-    id: "suspicious-qr",
-    label: "Suspicious QR Code",
-    value:
-      "A printed flyer says: 'Scan this QR now to claim your free tax refund'. The QR sticker looks pasted over another code and asks for SSN and debit card details.",
-  },
-  {
-    id: "fake-recruiter",
-    label: "Fake Recruiter",
-    value:
-      "Hi, I am from Google hiring team. We need your SSN and bank info immediately to process onboarding for a remote role. Offer expires today.",
-  },
-  {
-    id: "fake-profile",
-    label: "Fake Social Profile",
-    value:
-      "Profile claims to be a verified celebrity investor, has a new account, very few real interactions, and keeps pushing followers to DM for guaranteed crypto returns.",
-  },
-  {
-    id: "voice-clone",
-    label: "Voice-Cloning Transcript",
-    value:
-      "Mom it's me. I had an accident and my phone died. Please do not call anyone. I need you to wire $3000 right now to this account before police process me.",
-  },
-] as const;
+import { demoCases } from "@/lib/demoCases";
+import { AnalysisResult, StoryResult } from "@/lib/types";
 
 function looksLikeUrl(value: string): boolean {
   try {
     const parsed = new URL(value.trim());
-    return !!parsed.hostname;
+    return Boolean(parsed.hostname);
   } catch {
     return false;
   }
 }
 
-function riskClass(level: RiskLevel | undefined): string {
+function riskClass(level: AnalysisResult["risk_level"] | undefined): string {
   if (level === "High") return "risk-high";
   if (level === "Medium") return "risk-medium";
   return "risk-low";
@@ -82,10 +32,7 @@ export default function Home() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const canAnalyze = useMemo(
-    () => Boolean(selectedFile) || inputText.trim().length > 2,
-    [inputText, selectedFile],
-  );
+  const canAnalyze = Boolean(selectedFile) || inputText.trim().length > 2;
 
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
@@ -100,44 +47,42 @@ export default function Home() {
     if (!canAnalyze) return;
 
     setAnalyzing(true);
-    setError("");
     setAnalysis(null);
     setStory(null);
+    setError("");
 
     try {
-      let endpoint = "/analyze-text";
+      let endpoint = "/api/analyze-text";
       let body: BodyInit;
       let headers: HeadersInit = { "Content-Type": "application/json" };
 
       if (selectedFile) {
-        endpoint = "/analyze-image";
+        endpoint = "/api/analyze-image";
         headers = {};
         const formData = new FormData();
         formData.append("file", selectedFile);
         body = formData;
       } else if (looksLikeUrl(inputText)) {
-        endpoint = "/analyze-link";
+        endpoint = "/api/analyze-link";
         body = JSON.stringify({ url: inputText.trim() });
       } else {
         body = JSON.stringify({ text: inputText.trim() });
       }
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers,
         body,
       });
 
+      const payload = await response.json();
       if (!response.ok) {
-        const failure = await response.text();
-        throw new Error(failure || "Analysis failed.");
+        throw new Error(payload.error || "Analysis failed.");
       }
 
-      const payload: AnalysisResult = await response.json();
-      setAnalysis(payload);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Unknown error";
-      setError(`Could not analyze content: ${message}`);
+      setAnalysis(payload as AnalysisResult);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not analyze content.");
     } finally {
       setAnalyzing(false);
     }
@@ -150,26 +95,24 @@ export default function Home() {
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/generate-story`, {
+      const response = await fetch("/api/generate-story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           summary: analysis.summary,
-          signals_detected: analysis.signals_detected,
           risk_level: analysis.risk_level,
+          signals_detected: analysis.signals_detected,
         }),
       });
 
+      const payload = await response.json();
       if (!response.ok) {
-        const failure = await response.text();
-        throw new Error(failure || "Story generation failed.");
+        throw new Error(payload.error || "Story generation failed.");
       }
 
-      const payload: StoryResult = await response.json();
-      setStory(payload);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Unknown error";
-      setError(`Could not generate story: ${message}`);
+      setStory(payload as StoryResult);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not generate story.");
     } finally {
       setStoryLoading(false);
     }
@@ -184,15 +127,15 @@ export default function Home() {
   };
 
   const onMicrophone = () => {
-    const SpeechRecognitionClass =
+    const speechRecognitionClass =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-    if (!SpeechRecognitionClass) {
-      setError("Speech recognition is not supported in this browser.");
+    if (!speechRecognitionClass) {
+      setError("Speech recognition is not supported in this browser. Paste a transcript instead.");
       return;
     }
 
-    const recognition = new SpeechRecognitionClass();
+    const recognition = new speechRecognitionClass();
     recognition.lang = "en-US";
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
@@ -208,7 +151,7 @@ export default function Home() {
     };
 
     recognition.onerror = () => {
-      setError("Microphone capture failed. You can paste a transcript manually.");
+      setError("Microphone capture failed. You can paste the voice transcript manually.");
       setIsListening(false);
     };
 
@@ -218,87 +161,101 @@ export default function Home() {
   };
 
   return (
-    <main className="page">
-      <section className="hero card">
-        <p className="eyebrow">Multimodal Scam Safety Agent</p>
-        <h1>RedFlag AI</h1>
-        <p className="tagline">See it. Ask it. Understand the risk.</p>
+    <main className="page-shell">
+      <section className="hero-panel">
+        <div>
+          <p className="eyebrow">Live Scam Triage + Storytelling Demo</p>
+          <h1>RedFlag AI</h1>
+          <p className="tagline">See it. Ask it. Understand the risk.</p>
+        </div>
+        <div className="hero-note">
+          <span className="stat-kicker">One demo link</span>
+          <strong>Next.js + Gemini on Vercel</strong>
+          <p>No separate Python server, no backend host wiring, no cross-origin setup.</p>
+        </div>
       </section>
 
-      <section className="card">
-        <div className="section-header">
-          <h2>Live Agent Mode</h2>
-          <p>Paste suspicious text or links, upload screenshots/images, or capture a quick voice transcript.</p>
-        </div>
+      <section className="workspace-grid">
+        <section className="card composer-card">
+          <div className="section-copy">
+            <h2>Live Agent Mode</h2>
+            <p>Paste text, upload a screenshot, scan a suspicious link, or capture a voice-cloning transcript.</p>
+          </div>
 
-        <div className="demo-row">
-          {demoCases.map((demo) => (
-            <button
-              key={demo.id}
-              className="chip"
-              onClick={() => onDemoClick(demo.value)}
-              type="button"
-            >
-              {demo.label}
-            </button>
-          ))}
-        </div>
+          <div className="demo-strip">
+            {demoCases.map((demo) => (
+              <button key={demo.id} type="button" className="demo-chip" onClick={() => onDemoClick(demo.value)}>
+                <span>{demo.label}</span>
+                <small>{demo.category}</small>
+              </button>
+            ))}
+          </div>
 
-        <textarea
-          value={inputText}
-          onChange={(e) => {
-            setInputText(e.target.value);
-            if (e.target.value) setSelectedFile(null);
-          }}
-          placeholder="Paste suspicious email, message, profile details, QR context, transcript, or link..."
-          rows={7}
-          className="input"
-        />
-
-        <div className="actions">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={onFileChange}
-            className="hidden-input"
+          <textarea
+            className="main-input"
+            rows={8}
+            placeholder="Paste a suspicious message, link, QR-code context, profile description, or voice transcript..."
+            value={inputText}
+            onChange={(event) => {
+              setInputText(event.target.value);
+              if (event.target.value) {
+                setSelectedFile(null);
+              }
+            }}
           />
-          <button type="button" className="btn btn-secondary" onClick={() => fileInputRef.current?.click()}>
-            {selectedFile ? `Image: ${selectedFile.name}` : "Upload Screenshot/Image"}
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={onMicrophone} disabled={isListening}>
-            {isListening ? "Listening..." : "Use Microphone (Optional)"}
-          </button>
-          {selectedFile && (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() => setSelectedFile(null)}
-            >
-              Clear Image
+
+          <div className="toolbar-row">
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden-input" onChange={onFileChange} />
+            <button type="button" className="secondary-button" onClick={() => fileInputRef.current?.click()}>
+              {selectedFile ? `Selected: ${selectedFile.name}` : "Upload Screenshot / Image"}
             </button>
-          )}
-        </div>
+            <button type="button" className="secondary-button" onClick={onMicrophone} disabled={isListening}>
+              {isListening ? "Listening..." : "Use Microphone"}
+            </button>
+            {selectedFile && (
+              <button type="button" className="ghost-button" onClick={() => setSelectedFile(null)}>
+                Clear image
+              </button>
+            )}
+          </div>
 
-        <button type="button" className="btn btn-primary full" onClick={onAnalyze} disabled={!canAnalyze || analyzing}>
-          {analyzing ? "Analyzing Risk..." : "Analyze"}
-        </button>
+          <button type="button" className="primary-button" disabled={!canAnalyze || analyzing} onClick={onAnalyze}>
+            {analyzing ? "Analyzing risk..." : "Analyze"}
+          </button>
 
-        {error && <p className="error-text">{error}</p>}
+          {error && <p className="error-banner">{error}</p>}
+        </section>
+
+        <section className="card pipeline-card">
+          <h2>Demo Talking Points</h2>
+          <div className="pipeline-block">
+            <span>Original pipeline</span>
+            <p>Frontend to FastAPI backend to Google Gemini SDK to structured JSON risk analysis to story generation to Cloud Run deployment.</p>
+          </div>
+          <div className="pipeline-block highlight-block">
+            <span>New pipeline</span>
+            <p>Next.js UI to Next.js API routes on Vercel to Google Gemini JS SDK to structured JSON analysis plus story plus visual scene to one clean public demo link.</p>
+          </div>
+          <div className="pipeline-block">
+            <span>Storytelling angle</span>
+            <p>The story mode now explains how the scam unfolds and what the user would actually see, including fake QR posters, recruiter messages, or cloned-emergency prompts.</p>
+          </div>
+        </section>
       </section>
 
       {analysis && (
-        <section className={`card result ${riskClass(analysis.risk_level)}`}>
-          <div className="result-head">
-            <h2>Risk Assessment</h2>
-            <span className={`risk-pill ${riskClass(analysis.risk_level)}`}>
-              {analysis.risk_level} Risk
-            </span>
+        <section className={`card result-card ${riskClass(analysis.risk_level)}`}>
+          <div className="result-header">
+            <div>
+              <p className="eyebrow">Structured AI Output</p>
+              <h2>Risk Assessment</h2>
+            </div>
+            <span className={`risk-pill ${riskClass(analysis.risk_level)}`}>{analysis.risk_level} Risk</span>
           </div>
 
-          <p>{analysis.summary}</p>
+          <p className="summary-text">{analysis.summary}</p>
 
-          <div className="result-grid">
+          <div className="result-columns">
             <article>
               <h3>Signals Detected</h3>
               <ul>
@@ -307,42 +264,62 @@ export default function Home() {
                 ))}
               </ul>
             </article>
-
             <article>
               <h3>Guidance</h3>
               <ul>
-                {analysis.guidance.map((item) => (
-                  <li key={item}>{item}</li>
+                {analysis.guidance.map((guide) => (
+                  <li key={guide}>{guide}</li>
                 ))}
               </ul>
             </article>
           </div>
 
-          <p className="confidence">Confidence note: {analysis.confidence_note}</p>
+          <p className="confidence-line">Confidence note: {analysis.confidence_note}</p>
 
-          <button type="button" className="btn btn-primary" onClick={onGenerateStory} disabled={storyLoading}>
-            {storyLoading ? "Generating Story..." : "Generate Story"}
+          <button type="button" className="primary-button story-button" onClick={onGenerateStory} disabled={storyLoading}>
+            {storyLoading ? "Generating educational story..." : "Generate Story"}
           </button>
         </section>
       )}
 
       {story && (
-        <section className="card story-card">
-          <h2>Creative Story Mode</h2>
-          <h3>{story.title}</h3>
-          <p>{story.short_story}</p>
+        <section className="story-layout">
+          <section className="card story-card">
+            <p className="eyebrow">Creative Story Mode</p>
+            <h2>{story.title}</h2>
+            <p>{story.short_story}</p>
 
-          <h4>Red Flags Spotted</h4>
-          <ul>
-            {story.red_flags_spotted.map((flag) => (
-              <li key={flag}>{flag}</li>
-            ))}
-          </ul>
+            <h3>Red Flags Spotted</h3>
+            <ul>
+              {story.red_flags_spotted.map((flag) => (
+                <li key={flag}>{flag}</li>
+              ))}
+            </ul>
 
-          <h4>Lesson Learned</h4>
-          <p>{story.lesson_learned}</p>
+            <h3>Lesson Learned</h3>
+            <p>{story.lesson_learned}</p>
+          </section>
+
+          <section className="card visual-card">
+            <p className="eyebrow">How This Scam Might Look</p>
+            <div className="mock-scene">
+              <div className="mock-scene-header">
+                <span className="mock-badge">Scene Preview</span>
+                <span className="mock-badge muted-badge">Educational</span>
+              </div>
+              <p>{story.visual_scene_description}</p>
+            </div>
+            <h3>Visual Cues</h3>
+            <ul>
+              {story.visual_cues.map((cue) => (
+                <li key={cue}>{cue}</li>
+              ))}
+            </ul>
+          </section>
         </section>
       )}
     </main>
   );
 }
+
+
