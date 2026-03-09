@@ -611,3 +611,332 @@ button:hover:not(:disabled) {
   background: rgba(19, 118, 90, 0.12);
   color: var(--green);
 }
+
+.product-card,
+.wearable-card {
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.95), rgba(241, 249, 255, 0.95));
+}
+
+.feature-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.feature-tile {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(77, 60, 45, 0.08);
+}
+
+.feature-tile h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.feature-tile p {
+  margin: 0;
+}
+
+.wearable-display-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.wearable-display-card {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(17, 24, 26, 0.88);
+  color: #f7faf8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wearable-display-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.wearable-display-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ff6f5d;
+  box-shadow: 0 0 0 5px rgba(255, 111, 93, 0.14);
+}
+
+.wearable-display-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+.wearable-display-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.wearable-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 12px;
+  flex-wrap: wrap;
+}
+
+.wearable-node {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(19, 118, 90, 0.1);
+  color: var(--green-deep);
+  font-weight: 700;
+}
+
+.wearable-arrow {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.wearable-card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.wearable-intro {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
+.wearable-audio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.wearable-audio-card {
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(247, 250, 248, 0.95), rgba(233, 244, 248, 0.95));
+  color: var(--ink);
+  border: 1px solid rgba(52, 82, 95, 0.12);
+}
+
+.wearable-audio-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+.wearable-audio-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.wearable-audio-wave {
+  color: var(--slate);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 640px) {
+  .wearable-display-grid,
+  .wearable-audio-grid,
+  .inline-context-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wearable-concept-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.wearable-mode-panel,
+.phone-dashboard-card {
+  padding: 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(77, 60, 45, 0.08);
+}
+
+.wearable-mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.wearable-mode-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.wearable-mode-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(17, 24, 26, 0.88);
+  color: #f7faf8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.audio-tag {
+  background: rgba(52, 82, 95, 0.9);
+}
+
+.phone-tag {
+  background: rgba(19, 118, 90, 0.9);
+}
+
+.audio-top {
+  color: rgba(52, 82, 95, 0.8);
+}
+
+.phone-dashboard-card {
+  margin-top: 14px;
+}
+
+.phone-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.phone-dashboard-tile {
+  padding: 12px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(247, 250, 248, 0.96), rgba(233, 244, 248, 0.96));
+  border: 1px solid rgba(52, 82, 95, 0.08);
+}
+
+.phone-dashboard-tile span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.phone-dashboard-tile strong {
+  display: block;
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 640px) {
+  .wearable-concept-grid,
+  .phone-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.phone-dashboard-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.phone-dashboard-status {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(17, 24, 26, 0.92), rgba(31, 42, 45, 0.94));
+  color: #f7faf8;
+}
+
+.phone-dashboard-status strong {
+  display: block;
+  margin: 4px 0 6px;
+  font-size: 1.05rem;
+}
+
+.phone-dashboard-status p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.phone-dashboard-kicker {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.phone-dashboard-pulse {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(196, 71, 52, 0.18);
+  color: #ffb3a7;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.phone-dashboard-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.phone-action-chip {
+  border: 1px solid rgba(52, 82, 95, 0.12);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--slate);
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.phone-recent-strip {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(52, 82, 95, 0.08);
+}
+
+.phone-recent-strip .phone-dashboard-kicker {
+  color: var(--muted);
+}
+
+.phone-recent-strip ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+.phone-recent-strip li {
+  color: var(--muted);
+}
+
+.phone-recent-strip li + li {
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .phone-dashboard-status {
+    flex-direction: column;
+  }
+}

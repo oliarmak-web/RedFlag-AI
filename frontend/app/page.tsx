@@ -34,9 +34,58 @@ const startupFeatures = [
 ];
 
 const wearableFlow = [
-  "Glasses catch the moment: suspicious QR, caller, or message cue.",
-  "Wearable shows a tiny alert: High risk. Verify caller.",
-  "Phone opens the full RedFlag explanation, guidance, and context.",
+  "Wearable catches the moment: suspicious QR, caller, or message cue.",
+  "Display devices show a tiny warning. Audio-first devices speak a short prompt.",
+  "Phone opens the full RedFlag explanation, guidance, and trusted-circle options.",
+];
+
+const wearableDisplayAlerts = [
+  {
+    title: "QR scan",
+    status: "High risk",
+    body: "Do not scan. Open phone.",
+  },
+  {
+    title: "Unknown caller",
+    status: "Verify first",
+    body: "Trusted circle check ready.",
+  },
+];
+
+const wearableAudioAlerts = [
+  {
+    title: "Earbud cue",
+    status: "Spoken alert",
+    body: "Possible scam. Verify before you act.",
+  },
+  {
+    title: "Voice clone",
+    status: "Calm prompt",
+    body: "Pause. Call your trusted contact directly.",
+  },
+];
+
+const phoneDashboardItems = [
+  {
+    label: "Why flagged",
+    value: "Urgency + pasted QR sticker + identity data request",
+  },
+  {
+    label: "Recommended",
+    value: "Open scan, verify source, do not submit details",
+  },
+  {
+    label: "Fallback",
+    value: "Call trusted contact or use an official support channel",
+  },
+];
+
+const phoneQuickActions = ["Open scan", "Verify contact", "Block", "Save evidence"];
+
+const phoneRecentEvents = [
+  "11:42 AM  Audio alert played",
+  "11:42 AM  QR marked high risk",
+  "11:43 AM  Phone handoff ready",
 ];
 
 function looksLikeUrl(value: string): boolean {
@@ -91,7 +140,7 @@ export default function Home() {
     ? [
         `Status: ${analysis.risk_level} risk detected.`,
         `Primary move: ${analysis.guidance[0] || "Pause before engaging."}`,
-        `Signal watch: ${analysis.signals_detected[0] || "No signal captured yet."}`,
+        `Wearable cue: ${analysis.risk_level === "High" ? "Do not scan. Verify first." : analysis.risk_level === "Medium" ? "Slow down and check on phone." : "No urgent interrupt needed."}`,
       ]
     : [
         demoModeLocked ? "Status: sample mode active." : demoMode ? "Status: demo mode ready." : "Status: live scan ready.",
@@ -408,10 +457,88 @@ export default function Home() {
 
           <section className="card wearable-card">
             <p className="eyebrow">Wearable Concept</p>
+            <p className="wearable-intro">Display glasses can flash a one-line warning. Audio-first wearables can speak a short cue or chime, then hand off the full decision flow to the phone.</p>
+            <div className="wearable-concept-grid">
+              <section className="wearable-mode-panel">
+                <div className="wearable-mode-header">
+                  <span className="wearable-mode-tag">Display</span>
+                  <h3>Glasses with display</h3>
+                </div>
+                <div className="wearable-display-grid">
+                  {wearableDisplayAlerts.map((alert) => (
+                    <article key={alert.title} className="wearable-display-card">
+                      <div className="wearable-display-top">
+                        <span>{alert.title}</span>
+                        <span className="wearable-display-dot" />
+                      </div>
+                      <strong>{alert.status}</strong>
+                      <p>{alert.body}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+              <section className="wearable-mode-panel">
+                <div className="wearable-mode-header">
+                  <span className="wearable-mode-tag audio-tag">Audio</span>
+                  <h3>Wearables without display</h3>
+                </div>
+                <div className="wearable-audio-grid">
+                  {wearableAudioAlerts.map((alert) => (
+                    <article key={alert.title} className="wearable-audio-card">
+                      <div className="wearable-display-top audio-top">
+                        <span>{alert.title}</span>
+                        <span className="wearable-audio-wave">~~~</span>
+                      </div>
+                      <strong>{alert.status}</strong>
+                      <p>{alert.body}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            </div>
+            <section className="phone-dashboard-card">
+              <div className="wearable-mode-header">
+                <span className="wearable-mode-tag phone-tag">Phone</span>
+                <h3>Audio warnings dashboard</h3>
+              </div>
+              <div className="phone-dashboard-shell">
+                <div className="phone-dashboard-status">
+                  <div>
+                    <span className="phone-dashboard-kicker">Live alert</span>
+                    <strong>High risk QR detected</strong>
+                    <p>Brief wearable cue sent. Full scan ready on phone.</p>
+                  </div>
+                  <span className="phone-dashboard-pulse">Act now</span>
+                </div>
+                <div className="phone-dashboard-actions">
+                  {phoneQuickActions.map((action) => (
+                    <button key={action} type="button" className="phone-action-chip">
+                      {action}
+                    </button>
+                  ))}
+                </div>
+                <div className="phone-dashboard-grid">
+                  {phoneDashboardItems.map((item) => (
+                    <article key={item.label} className="phone-dashboard-tile">
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
+                    </article>
+                  ))}
+                </div>
+                <div className="phone-recent-strip">
+                  <span className="phone-dashboard-kicker">Recent events</span>
+                  <ul>
+                    {phoneRecentEvents.map((event) => (
+                      <li key={event}>{event}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
             <div className="wearable-strip">
-              <div className="wearable-node">Glasses</div>
+              <div className="wearable-node">Wearable</div>
               <div className="wearable-arrow">{" > "}</div>
-              <div className="wearable-node">Alert</div>
+              <div className="wearable-node">Brief alert</div>
               <div className="wearable-arrow">{" > "}</div>
               <div className="wearable-node">Phone</div>
             </div>
@@ -425,7 +552,7 @@ export default function Home() {
       </section>
 
       {analysis && (
-        <section className={`card result-card ${riskClass(analysis.risk_level)}`}>
+        <section className={`card result-card ${riskClass(analysis?.risk_level)}`}>
           <div className="result-header">
             <div>
               <p className="eyebrow">Risk Read</p>
@@ -499,4 +626,7 @@ export default function Home() {
     </main>
   );
 }
+
+
+
 
