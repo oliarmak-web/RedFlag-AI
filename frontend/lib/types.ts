@@ -1,4 +1,5 @@
 export type RiskLevel = "Low" | "Medium" | "High";
+export type Gravity = "Critical" | "Elevated" | "Watch";
 
 export type AnalysisResult = {
   risk_level: RiskLevel;
@@ -21,5 +22,6 @@ export type DemoCase = {
   id: string;
   label: string;
   category: string;
+  gravity: Gravity;
   value: string;
 };

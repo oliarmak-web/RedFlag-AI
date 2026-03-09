@@ -569,3 +569,45 @@ button:hover:not(:disabled) {
 .visual-context-card p:last-child {
   margin-bottom: 0;
 }
+
+.gravity-groups {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0 16px;
+}
+
+.gravity-section {
+  display: grid;
+  gap: 8px;
+}
+
+.gravity-header-row {
+  display: flex;
+  align-items: center;
+}
+
+.gravity-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gravity-critical {
+  background: rgba(196, 71, 52, 0.12);
+  color: var(--red);
+}
+
+.gravity-elevated {
+  background: rgba(171, 109, 9, 0.12);
+  color: var(--amber);
+}
+
+.gravity-watch {
+  background: rgba(19, 118, 90, 0.12);
+  color: var(--green);
+}

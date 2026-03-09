@@ -4,10 +4,11 @@ import { ChangeEvent, useRef, useState } from "react";
 
 import { demoCases } from "@/lib/demoCases";
 import { getMockDemo } from "@/lib/mockData";
-import { AnalysisResult, StoryResult } from "@/lib/types";
+import { AnalysisResult, Gravity, StoryResult } from "@/lib/types";
 
 const demoModeDefault = process.env.NEXT_PUBLIC_DEMO_MODE_DEFAULT !== "false";
 const demoModeLocked = process.env.NEXT_PUBLIC_DEMO_MODE_LOCK === "true";
+const gravityOrder: Gravity[] = ["Critical", "Elevated", "Watch"];
 
 function looksLikeUrl(value: string): boolean {
   try {
@@ -30,6 +31,12 @@ function riskLabel(level: AnalysisResult["risk_level"] | undefined): string {
   return "Looks calmer";
 }
 
+function gravityClass(gravity: Gravity): string {
+  if (gravity === "Critical") return "gravity-critical";
+  if (gravity === "Elevated") return "gravity-elevated";
+  return "gravity-watch";
+}
+
 export default function Home() {
   const [inputText, setInputText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -45,6 +52,11 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canAnalyze = Boolean(selectedFile) || inputText.trim().length > 2;
+
+  const groupedDemoCases = gravityOrder.map((gravity) => ({
+    gravity,
+    items: demoCases.filter((demo) => demo.gravity === gravity),
+  }));
 
   const actionFeed = analysis
     ? [
@@ -144,7 +156,7 @@ export default function Home() {
       }
 
       if (demoModeLocked) {
-        setError("Scenario details are sample-only right now.");
+        setError("Context is sample-only right now.");
         return;
       }
 
@@ -160,12 +172,12 @@ export default function Home() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || "Scenario failed.");
+        throw new Error(payload.error || "Context failed.");
       }
 
       setStory(payload as StoryResult);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Scenario failed.");
+      setError(error instanceof Error ? error.message : "Context failed.");
     } finally {
       setStoryLoading(false);
     }
@@ -258,17 +270,26 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="demo-strip">
-            {demoCases.map((demo) => (
-              <button
-                key={demo.id}
-                type="button"
-                className={`demo-chip ${selectedDemoId === demo.id ? "demo-chip-active" : ""}`}
-                onClick={() => onDemoClick(demo.id, demo.value)}
-              >
-                <span>{demo.label}</span>
-                <small>{demo.category}</small>
-              </button>
+          <div className="gravity-groups">
+            {groupedDemoCases.map((group) => (
+              <section key={group.gravity} className="gravity-section">
+                <div className="gravity-header-row">
+                  <span className={`gravity-pill ${gravityClass(group.gravity)}`}>{group.gravity}</span>
+                </div>
+                <div className="demo-strip">
+                  {group.items.map((demo) => (
+                    <button
+                      key={demo.id}
+                      type="button"
+                      className={`demo-chip ${selectedDemoId === demo.id ? "demo-chip-active" : ""}`}
+                      onClick={() => onDemoClick(demo.id, demo.value)}
+                    >
+                      <span>{demo.label}</span>
+                      <small>{demo.category}</small>
+                    </button>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
 
