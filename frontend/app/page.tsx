@@ -46,6 +46,18 @@ export default function Home() {
 
   const canAnalyze = Boolean(selectedFile) || inputText.trim().length > 2;
 
+  const actionFeed = analysis
+    ? [
+        `Status: ${analysis.risk_level} risk detected.`,
+        `Primary move: ${analysis.guidance[0] || "Pause before engaging."}`,
+        `Signal watch: ${analysis.signals_detected[0] || "No signal captured yet."}`,
+      ]
+    : [
+        demoModeLocked ? "Status: sample mode active." : demoMode ? "Status: demo mode ready." : "Status: live scan ready.",
+        selectedDemoId ? "Queue: sample scenario loaded." : "Queue: waiting for a message, link, or image.",
+        "System: alerts stay short, practical, and calm.",
+      ];
+
   const resetOutputs = () => {
     setAnalysis(null);
     setStory(null);
@@ -71,7 +83,6 @@ export default function Home() {
         const mockDemo = getMockDemo(selectedDemoId);
         if (mockDemo) {
           setAnalysis(mockDemo.analysis);
-          setStory(null);
           return;
         }
       }
@@ -133,7 +144,7 @@ export default function Home() {
       }
 
       if (demoModeLocked) {
-        setError("Scenario view is sample-only right now.");
+        setError("Scenario details are sample-only right now.");
         return;
       }
 
@@ -206,9 +217,9 @@ export default function Home() {
     <main className="page-shell">
       <section className="hero-panel">
         <div>
-          <p className="eyebrow">Personal Safety Scan</p>
+          <p className="eyebrow">Multimodal Digital Trust Assistant</p>
           <h1>RedFlag AI</h1>
-          <p className="tagline">Fast reads on risky messages, links, screenshots, and voices.</p>
+          <p className="tagline">A startup building a real-time trust layer for messages, links, screenshots, QR codes, profiles, and voice scams.</p>
         </div>
         <div className={`hero-watch ${riskClass(analysis?.risk_level)}`}>
           <div className="watch-ring">
@@ -225,7 +236,7 @@ export default function Home() {
         <section className="card composer-card">
           <div className="section-copy">
             <h2>Scan Input</h2>
-            <p>Paste, upload, or speak. RedFlag keeps the response short and actionable.</p>
+            <p>Paste, upload, or speak. RedFlag turns noisy signals into brief trust guidance.</p>
           </div>
 
           <div className="demo-mode-bar compact-bar">
@@ -299,14 +310,14 @@ export default function Home() {
 
         <section className="side-stack">
           <section className="card status-card">
-            <p className="eyebrow">Quick Read</p>
+            <p className="eyebrow">Device Status</p>
             <div className="status-grid">
               <div>
                 <span className="mini-label">Mode</span>
-                <strong>{demoModeLocked ? "Locked demo" : demoMode ? "Demo" : "Live"}</strong>
+                <strong>{demoModeLocked ? "Locked" : demoMode ? "Demo" : "Live"}</strong>
               </div>
               <div>
-                <span className="mini-label">Input</span>
+                <span className="mini-label">Channel</span>
                 <strong>{selectedFile ? "Image" : selectedDemoId ? "Sample" : inputText ? "Text" : "Idle"}</strong>
               </div>
               <div>
@@ -314,18 +325,22 @@ export default function Home() {
                 <strong>{analysis?.risk_level || "None"}</strong>
               </div>
               <div>
-                <span className="mini-label">Story</span>
-                <strong>{story ? "Ready" : "Off"}</strong>
+                <span className="mini-label">Context</span>
+                <strong>{story ? "Expanded" : "Brief"}</strong>
               </div>
+            </div>
+            <div className="device-strip">
+              <span className={`device-dot ${riskClass(analysis?.risk_level)}`} />
+              <span className="device-text">{analysis ? riskLabel(analysis.risk_level) : "Ambient watch mode"}</span>
             </div>
           </section>
 
           <section className="card feed-card">
             <p className="eyebrow">Action Feed</p>
             <ul>
-              <li>{demoModeLocked ? "Public link stays on sample mode." : "Switch to live mode when you want real model output."}</li>
-              <li>{selectedDemoId ? "Sample loaded and ready to scan." : "Choose a sample or add your own content."}</li>
-              <li>{analysis ? analysis.guidance[0] : "Alerts will stay brief and practical."}</li>
+              {actionFeed.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </section>
         </section>
@@ -365,45 +380,42 @@ export default function Home() {
           <p className="confidence-line">{analysis.confidence_note}</p>
 
           <button type="button" className="primary-button story-button" onClick={onGenerateStory} disabled={storyLoading}>
-            {storyLoading ? "Building scenario..." : demoMode && selectedDemoId ? "Open sample scenario" : "Build scenario"}
+            {storyLoading ? "Expanding context..." : demoMode && selectedDemoId ? "Open context" : "Expand context"}
           </button>
-        </section>
-      )}
 
-      {story && (
-        <section className="story-layout">
-          <section className="card story-card">
-            <p className="eyebrow">Scenario View</p>
-            <h2>{story.title}</h2>
-            <p>{story.short_story}</p>
-
-            <h3>Flags</h3>
-            <ul>
-              {story.red_flags_spotted.map((flag) => (
-                <li key={flag}>{flag}</li>
-              ))}
-            </ul>
-
-            <h3>Takeaway</h3>
-            <p>{story.lesson_learned}</p>
-          </section>
-
-          <section className="card visual-card">
-            <p className="eyebrow">Visual Snapshot</p>
-            <div className="mock-scene">
-              <div className="mock-scene-header">
-                <span className="mock-badge">Preview</span>
-                <span className="mock-badge muted-badge">Pattern</span>
-              </div>
-              <p>{story.visual_scene_description}</p>
+          {story && (
+            <div className="inline-context-grid">
+              <section className="inline-context-card">
+                <p className="eyebrow">Context</p>
+                <h3>{story.title}</h3>
+                <p>{story.short_story}</p>
+                <h4>Flags</h4>
+                <ul>
+                  {story.red_flags_spotted.map((flag) => (
+                    <li key={flag}>{flag}</li>
+                  ))}
+                </ul>
+              </section>
+              <section className="inline-context-card visual-context-card">
+                <p className="eyebrow">Visual Snapshot</p>
+                <div className="mock-scene">
+                  <div className="mock-scene-header">
+                    <span className="mock-badge">Preview</span>
+                    <span className="mock-badge muted-badge">Pattern</span>
+                  </div>
+                  <p>{story.visual_scene_description}</p>
+                </div>
+                <h4>Cues</h4>
+                <ul>
+                  {story.visual_cues.map((cue) => (
+                    <li key={cue}>{cue}</li>
+                  ))}
+                </ul>
+                <h4>Takeaway</h4>
+                <p>{story.lesson_learned}</p>
+              </section>
             </div>
-            <h3>Cues</h3>
-            <ul>
-              {story.visual_cues.map((cue) => (
-                <li key={cue}>{cue}</li>
-              ))}
-            </ul>
-          </section>
+          )}
         </section>
       )}
     </main>

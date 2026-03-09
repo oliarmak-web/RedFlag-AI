@@ -330,13 +330,66 @@ button:hover:not(:disabled) {
   margin-top: 4px;
 }
 
+.device-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(77, 60, 45, 0.1);
+}
+
+.device-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(52, 82, 95, 0.25);
+  box-shadow: 0 0 0 5px rgba(52, 82, 95, 0.08);
+}
+
+.device-dot.risk-low {
+  background: var(--green);
+  box-shadow: 0 0 0 5px rgba(19, 118, 90, 0.12);
+}
+
+.device-dot.risk-medium {
+  background: var(--amber);
+  box-shadow: 0 0 0 5px rgba(171, 109, 9, 0.12);
+}
+
+.device-dot.risk-high {
+  background: var(--red);
+  box-shadow: 0 0 0 5px rgba(196, 71, 52, 0.12);
+}
+
+.device-text {
+  font-weight: 700;
+}
+
 .feed-card ul {
   margin: 14px 0 0;
-  padding-left: 18px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.feed-card li {
+  position: relative;
+  padding: 0 0 0 18px;
 }
 
 .feed-card li + li {
-  margin-top: 10px;
+  margin-top: 12px;
+}
+
+.feed-card li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(19, 118, 90, 0.28);
 }
 
 .result-card {
@@ -488,4 +541,31 @@ button:hover:not(:disabled) {
   .status-grid {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.inline-context-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.inline-context-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 249, 241, 0.96), rgba(245, 255, 250, 0.96));
+  border: 1px solid rgba(77, 60, 45, 0.1);
+}
+
+.inline-context-card h3,
+.inline-context-card h4 {
+  margin-bottom: 8px;
+}
+
+.inline-context-card ul {
+  padding-left: 18px;
+}
+
+.visual-context-card p:last-child {
+  margin-bottom: 0;
 }
