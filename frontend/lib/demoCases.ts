@@ -37,6 +37,20 @@ export const demoCases: DemoCase[] = [
       "A pop-up says your browser is out of date and requires an urgent update download. The file is named Chrome_Update_Security_Patch.zip from an unfamiliar site.",
   },
   {
+    id: "bank-reset",
+    label: "Bank Reset",
+    category: "Banking",
+    value:
+      "A text says: 'Bank of America fraud alert: your account has been locked. Reset your password immediately here: http://boa-security-reset.help to restore access.'",
+  },
+  {
+    id: "government-impersonation",
+    label: "Gov Impersonation",
+    category: "Government",
+    value:
+      "A caller says they are from the IRS and warns that legal action will start today unless the user immediately confirms their SSN and pays a balance through a provided payment portal.",
+  },
+  {
     id: "fake-recruiter",
     label: "Fake Recruiter",
     category: "Recruiting",

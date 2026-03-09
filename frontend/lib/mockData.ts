@@ -111,7 +111,48 @@ export const mockDemos: Record<string, MockDemo> = {
       visual_cues: ["Pop-up urgency", "Zip installer", "Unknown download domain"],
     },
   },
-  "fake-recruiter": {
+  "bank-reset": {
+    analysis: {
+      risk_level: "High",
+      summary: "This looks like a bank-themed password reset phishing attempt using fear and a fake reset domain.",
+      signals_detected: ["Bank impersonation", "Urgent account lock claim", "Lookalike reset link"],
+      guidance: [
+        "Do not open the link.",
+        "Go to the bank app or official website directly.",
+        "Verify recent account activity through official support channels.",
+      ],
+      confidence_note: "High confidence because the message combines a trusted brand with a suspicious reset URL and lockout pressure.",
+    },
+    story: {
+      title: "Locked Out Now",
+      short_story: "A text tries to create immediate panic by claiming the user's bank account is frozen. The user is pushed toward a fake reset page designed to steal credentials before they slow down enough to check the real banking app.",
+      red_flags_spotted: ["Trusted brand impersonation", "Panic-driven lockout warning", "Fake reset domain"],
+      lesson_learned: "For banking alerts, always navigate from the official app or bookmarked site instead of the message.",
+      visual_scene_description: "A clean banking text alert with a short warning, a reset link, and language suggesting access will be lost unless the user acts right away.",
+      visual_cues: ["Short link or strange bank web address", "Locked-account pressure", "Reset now wording"],
+    },
+  },
+  "government-impersonation": {
+    analysis: {
+      risk_level: "High",
+      summary: "This matches a government impersonation scam using legal threats, urgency, and requests for sensitive identity details or payment.",
+      signals_detected: ["IRS impersonation", "Threat of legal action", "Immediate payment demand"],
+      guidance: [
+        "Do not share SSN or payment details on this call.",
+        "Hang up and contact the agency through its official website.",
+        "Be skeptical of urgent payment demands by phone.",
+      ],
+      confidence_note: "High confidence because real agencies do not pressure instant payment through random portals or calls.",
+    },
+    story: {
+      title: "Pay Today or Else",
+      short_story: "A caller uses the name of a government agency to trigger fear and compliance. The script sounds official, but the urgency and payment pressure are meant to stop the user from verifying the claim independently.",
+      red_flags_spotted: ["Official-sounding authority", "Legal threat pressure", "Portal-based payment demand"],
+      lesson_learned: "Authority language should increase verification, not reduce it.",
+      visual_scene_description: "A phone alert followed by a stern voice or message claiming to represent a government office, paired with threats and a rushed payment instruction.",
+      visual_cues: ["Demand to act today", "Threat of arrest or legal action", "Payment portal or gift-card style pressure"],
+    },
+  },  "fake-recruiter": {
     analysis: {
       risk_level: "High",
       summary: "This recruiter message uses impersonation and urgency to collect identity and banking data too early.",
@@ -200,3 +241,4 @@ export const mockDemos: Record<string, MockDemo> = {
 export function getMockDemo(id: string): MockDemo | null {
   return mockDemos[id] || null;
 }
+
