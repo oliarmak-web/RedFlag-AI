@@ -24,6 +24,12 @@ function riskClass(level: AnalysisResult["risk_level"] | undefined): string {
   return "risk-low";
 }
 
+function riskLabel(level: AnalysisResult["risk_level"] | undefined): string {
+  if (level === "High") return "Act now";
+  if (level === "Medium") return "Slow down";
+  return "Looks calmer";
+}
+
 export default function Home() {
   const [inputText, setInputText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -71,7 +77,7 @@ export default function Home() {
       }
 
       if (demoModeLocked) {
-        setError("This public Cloud Run demo is locked to the built-in sample scenarios so it stays free to run.");
+        setError("Sample-only mode. Pick a built-in case.");
         return;
       }
 
@@ -100,12 +106,12 @@ export default function Home() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || "Analysis failed.");
+        throw new Error(payload.error || "Scan failed.");
       }
 
       setAnalysis(payload as AnalysisResult);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Could not analyze content.");
+      setError(error instanceof Error ? error.message : "Scan failed.");
     } finally {
       setAnalyzing(false);
     }
@@ -127,7 +133,7 @@ export default function Home() {
       }
 
       if (demoModeLocked) {
-        setError("This public Cloud Run demo is locked to built-in scenarios, so live Gemini story calls are disabled.");
+        setError("Scenario view is sample-only right now.");
         return;
       }
 
@@ -143,12 +149,12 @@ export default function Home() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error || "Story generation failed.");
+        throw new Error(payload.error || "Scenario failed.");
       }
 
       setStory(payload as StoryResult);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Could not generate story.");
+      setError(error instanceof Error ? error.message : "Scenario failed.");
     } finally {
       setStoryLoading(false);
     }
@@ -166,7 +172,7 @@ export default function Home() {
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!speechRecognitionClass) {
-      setError("Speech recognition is not supported in this browser. Paste a transcript instead.");
+      setError("Mic unavailable. Paste text instead.");
       return;
     }
 
@@ -187,7 +193,7 @@ export default function Home() {
     };
 
     recognition.onerror = () => {
-      setError("Microphone capture failed. You can paste the voice transcript manually.");
+      setError("Mic failed. Paste text instead.");
       setIsListening(false);
     };
 
@@ -200,25 +206,29 @@ export default function Home() {
     <main className="page-shell">
       <section className="hero-panel">
         <div>
-          <p className="eyebrow">Live Scam Triage + Storytelling Demo</p>
+          <p className="eyebrow">Personal Safety Scan</p>
           <h1>RedFlag AI</h1>
-          <p className="tagline">See it. Ask it. Understand the risk.</p>
+          <p className="tagline">Fast reads on risky messages, links, screenshots, and voices.</p>
         </div>
-        <div className="hero-note">
-          <span className="stat-kicker">One demo link</span>
-          <strong>Next.js on Cloud Run</strong>
-          <p>One hosted app, optional live Gemini mode, and a locked free demo path for judges.</p>
+        <div className={`hero-watch ${riskClass(analysis?.risk_level)}`}>
+          <div className="watch-ring">
+            <div className="watch-core">
+              <span className="watch-state">{analysis?.risk_level || "Standby"}</span>
+              <strong>{riskLabel(analysis?.risk_level)}</strong>
+            </div>
+          </div>
+          <p>{analysis ? analysis.summary : "Drop in a signal and get a quick risk read."}</p>
         </div>
       </section>
 
       <section className="workspace-grid">
         <section className="card composer-card">
           <div className="section-copy">
-            <h2>Live Agent Mode</h2>
-            <p>Paste text, upload a screenshot, scan a suspicious link, or capture a voice-cloning transcript.</p>
+            <h2>Scan Input</h2>
+            <p>Paste, upload, or speak. RedFlag keeps the response short and actionable.</p>
           </div>
 
-          <div className="demo-mode-bar">
+          <div className="demo-mode-bar compact-bar">
             <label className="mode-toggle">
               <input
                 type="checkbox"
@@ -226,14 +236,14 @@ export default function Home() {
                 onChange={(event) => setDemoMode(event.target.checked)}
                 disabled={demoModeLocked}
               />
-              <span>{demoModeLocked ? "Free demo mode is locked on" : "Use free instant demo mode"}</span>
+              <span>{demoModeLocked ? "Demo locked" : demoMode ? "Demo mode on" : "Live mode on"}</span>
             </label>
             <p>
               {demoModeLocked
-                ? "This Cloud Run deployment is locked to built-in scenarios, so anyone opening the link can demo the app without consuming Gemini credits."
+                ? "Built-in cases only. No live model calls."
                 : demoMode
-                  ? "Built-in sample outputs are used for the demo buttons, so judges can click through without spending Gemini credits."
-                  : "Real Gemini calls run when you analyze content or generate a story."}
+                  ? "Sample cases return instantly."
+                  : "Live Gemini analysis is active."}
             </p>
           </div>
 
@@ -254,7 +264,7 @@ export default function Home() {
           <textarea
             className="main-input"
             rows={8}
-            placeholder="Paste a suspicious message, link, QR-code context, profile description, or voice transcript..."
+            placeholder="Paste a message, suspicious link, QR setup, profile details, or transcript..."
             value={inputText}
             onChange={(event) => {
               setInputText(event.target.value);
@@ -268,39 +278,56 @@ export default function Home() {
           <div className="toolbar-row">
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden-input" onChange={onFileChange} />
             <button type="button" className="secondary-button" onClick={() => fileInputRef.current?.click()}>
-              {selectedFile ? `Selected: ${selectedFile.name}` : "Upload Screenshot / Image"}
+              {selectedFile ? `Image: ${selectedFile.name}` : "Upload image"}
             </button>
             <button type="button" className="secondary-button" onClick={onMicrophone} disabled={isListening}>
-              {isListening ? "Listening..." : "Use Microphone"}
+              {isListening ? "Listening..." : "Use mic"}
             </button>
             {selectedFile && (
               <button type="button" className="ghost-button" onClick={() => setSelectedFile(null)}>
-                Clear image
+                Clear
               </button>
             )}
           </div>
 
           <button type="button" className="primary-button" disabled={!canAnalyze || analyzing} onClick={onAnalyze}>
-            {analyzing ? "Analyzing risk..." : demoMode && selectedDemoId ? "Analyze with demo data" : "Analyze"}
+            {analyzing ? "Scanning..." : demoMode && selectedDemoId ? "Run sample" : "Scan now"}
           </button>
 
           {error && <p className="error-banner">{error}</p>}
         </section>
 
-        <section className="card pipeline-card">
-          <h2>Demo Talking Points</h2>
-          <div className="pipeline-block">
-            <span>Original pipeline</span>
-            <p>Frontend to FastAPI backend to Google Gemini SDK to structured JSON risk analysis to story generation to Cloud Run deployment.</p>
-          </div>
-          <div className="pipeline-block highlight-block">
-            <span>Current pipeline</span>
-            <p>Next.js UI to Next.js API routes on Cloud Run to Google Gemini JS SDK to structured JSON analysis plus story plus visual scene, with an optional locked free demo mode.</p>
-          </div>
-          <div className="pipeline-block">
-            <span>Storytelling angle</span>
-            <p>The story mode now explains how the scam unfolds and what the user would actually see, including fake QR posters, recruiter messages, or cloned-emergency prompts.</p>
-          </div>
+        <section className="side-stack">
+          <section className="card status-card">
+            <p className="eyebrow">Quick Read</p>
+            <div className="status-grid">
+              <div>
+                <span className="mini-label">Mode</span>
+                <strong>{demoModeLocked ? "Locked demo" : demoMode ? "Demo" : "Live"}</strong>
+              </div>
+              <div>
+                <span className="mini-label">Input</span>
+                <strong>{selectedFile ? "Image" : selectedDemoId ? "Sample" : inputText ? "Text" : "Idle"}</strong>
+              </div>
+              <div>
+                <span className="mini-label">Risk</span>
+                <strong>{analysis?.risk_level || "None"}</strong>
+              </div>
+              <div>
+                <span className="mini-label">Story</span>
+                <strong>{story ? "Ready" : "Off"}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section className="card feed-card">
+            <p className="eyebrow">Action Feed</p>
+            <ul>
+              <li>{demoModeLocked ? "Public link stays on sample mode." : "Switch to live mode when you want real model output."}</li>
+              <li>{selectedDemoId ? "Sample loaded and ready to scan." : "Choose a sample or add your own content."}</li>
+              <li>{analysis ? analysis.guidance[0] : "Alerts will stay brief and practical."}</li>
+            </ul>
+          </section>
         </section>
       </section>
 
@@ -308,17 +335,17 @@ export default function Home() {
         <section className={`card result-card ${riskClass(analysis.risk_level)}`}>
           <div className="result-header">
             <div>
-              <p className="eyebrow">Structured AI Output</p>
-              <h2>Risk Assessment</h2>
+              <p className="eyebrow">Risk Read</p>
+              <h2>{analysis.risk_level} risk</h2>
             </div>
-            <span className={`risk-pill ${riskClass(analysis.risk_level)}`}>{analysis.risk_level} Risk</span>
+            <span className={`risk-pill ${riskClass(analysis.risk_level)}`}>{riskLabel(analysis.risk_level)}</span>
           </div>
 
           <p className="summary-text">{analysis.summary}</p>
 
           <div className="result-columns">
             <article>
-              <h3>Signals Detected</h3>
+              <h3>Signals</h3>
               <ul>
                 {analysis.signals_detected.map((signal) => (
                   <li key={signal}>{signal}</li>
@@ -326,7 +353,7 @@ export default function Home() {
               </ul>
             </article>
             <article>
-              <h3>Guidance</h3>
+              <h3>Do this</h3>
               <ul>
                 {analysis.guidance.map((guide) => (
                   <li key={guide}>{guide}</li>
@@ -335,10 +362,10 @@ export default function Home() {
             </article>
           </div>
 
-          <p className="confidence-line">Confidence note: {analysis.confidence_note}</p>
+          <p className="confidence-line">{analysis.confidence_note}</p>
 
           <button type="button" className="primary-button story-button" onClick={onGenerateStory} disabled={storyLoading}>
-            {storyLoading ? "Generating educational story..." : demoMode && selectedDemoId ? "Generate demo story" : "Generate Story"}
+            {storyLoading ? "Building scenario..." : demoMode && selectedDemoId ? "Open sample scenario" : "Build scenario"}
           </button>
         </section>
       )}
@@ -346,31 +373,31 @@ export default function Home() {
       {story && (
         <section className="story-layout">
           <section className="card story-card">
-            <p className="eyebrow">Creative Story Mode</p>
+            <p className="eyebrow">Scenario View</p>
             <h2>{story.title}</h2>
             <p>{story.short_story}</p>
 
-            <h3>Red Flags Spotted</h3>
+            <h3>Flags</h3>
             <ul>
               {story.red_flags_spotted.map((flag) => (
                 <li key={flag}>{flag}</li>
               ))}
             </ul>
 
-            <h3>Lesson Learned</h3>
+            <h3>Takeaway</h3>
             <p>{story.lesson_learned}</p>
           </section>
 
           <section className="card visual-card">
-            <p className="eyebrow">How This Scam Might Look</p>
+            <p className="eyebrow">Visual Snapshot</p>
             <div className="mock-scene">
               <div className="mock-scene-header">
-                <span className="mock-badge">Scene Preview</span>
-                <span className="mock-badge muted-badge">Educational</span>
+                <span className="mock-badge">Preview</span>
+                <span className="mock-badge muted-badge">Pattern</span>
               </div>
               <p>{story.visual_scene_description}</p>
             </div>
-            <h3>Visual Cues</h3>
+            <h3>Cues</h3>
             <ul>
               {story.visual_cues.map((cue) => (
                 <li key={cue}>{cue}</li>
