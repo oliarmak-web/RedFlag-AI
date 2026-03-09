@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 import { demoCases } from "@/lib/demoCases";
 import { getMockDemo } from "@/lib/mockData";
@@ -128,6 +128,7 @@ export default function Home() {
   const [selectedDemoId, setSelectedDemoId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const canAnalyze = Boolean(selectedFile) || inputText.trim().length > 2;
 
@@ -268,6 +269,10 @@ export default function Home() {
     resetOutputs();
   };
 
+  const onCameraCapture = () => {
+    cameraInputRef.current?.click();
+  };
+
   const onMicrophone = () => {
     const speechRecognitionClass =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -387,8 +392,12 @@ export default function Home() {
 
           <div className="toolbar-row">
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden-input" onChange={onFileChange} />
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden-input" onChange={onFileChange} />
             <button type="button" className="secondary-button" onClick={() => fileInputRef.current?.click()}>
               {selectedFile ? `Image: ${selectedFile.name}` : "Upload image"}
+            </button>
+            <button type="button" className="secondary-button" onClick={onCameraCapture}>
+              Use camera
             </button>
             <button type="button" className="secondary-button" onClick={onMicrophone} disabled={isListening}>
               {isListening ? "Listening..." : "Use mic"}
@@ -399,6 +408,7 @@ export default function Home() {
               </button>
             )}
           </div>
+          <p className="toolbar-hint">Use camera works best on mobile for QR codes, posters, and suspicious on-screen messages.</p>
 
           <button type="button" className="primary-button" disabled={!canAnalyze || analyzing} onClick={onAnalyze}>
             {analyzing ? "Scanning..." : demoMode && selectedDemoId ? "Run sample" : "Scan now"}
@@ -626,6 +636,9 @@ export default function Home() {
     </main>
   );
 }
+
+
+
 
 
 

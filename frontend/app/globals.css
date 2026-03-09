@@ -940,3 +940,9 @@ button:hover:not(:disabled) {
     flex-direction: column;
   }
 }
+
+.toolbar-hint {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
